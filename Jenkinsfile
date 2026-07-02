@@ -2,22 +2,26 @@ pipeline {
     agent any
 
     stages {
+        stage('Clone Code') {
+            steps {
+                git 'https://github.com/ManojPrabhahar/Project-practice-Manoj-Prabhahar'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-project:v1 .'
+                sh 'docker build -t manojprabhahar/devops-project:v1 .'
             }
         }
 
-        stage('Remove Old Container') {
+        stage('Push to Docker Hub') {
             steps {
-                sh 'docker rm -f manojclouds || true'
-            }
-        }
-
-        stage('Run New Container') {
-            steps {
-                sh 'docker run -d --name manojclouds -p 80:80 devops-project:v1'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh 'docker push manojprabhahar/devops-project:v1'
+                }
             }
         }
     }
 }
+
